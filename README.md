@@ -57,7 +57,7 @@ This sparsity made both collaborative filtering and feature-driven ranking highl
 
 
 
-![Sparsity Visualization](images/data_sparsity_2.png)
+![Sparsity Visualization](images/data_sparsity_3.png)
 
 ---
 
