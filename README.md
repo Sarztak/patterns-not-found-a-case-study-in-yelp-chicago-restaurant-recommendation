@@ -124,8 +124,6 @@ Item-side features had **almost zero influence**.
 
 > “This user rates everyone highly, so a high score doesn’t mean this place is especially relevant.”
 
-![Sparsity Visualization](images/feature_importance.png)
-
 
 ![Sparsity Visualization](images/shap.png)
 ---
