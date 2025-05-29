@@ -3,7 +3,7 @@
 <html lang="en">
 <head><meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Collab Filtering Model ML2</title><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js"></script>
+<title>Pure Collaborative Filtering ML2</title><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js"></script>
 <style type="text/css">
     pre { line-height: 125%; }
 td.linenos .normal { color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px; }
@@ -7510,7 +7510,7 @@ a.anchor-link {
 </style>
 <!-- End of mermaid configuration --></head>
 <body class="jp-Notebook" data-jp-theme-light="true" data-jp-theme-name="JupyterLab Light">
-<main><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=7da7bc9a-bd0a-407a-9e01-a7a64025be15">
+<main><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=d35bde90-6fbe-4e44-8d34-e48cadaf2eac">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -7526,10 +7526,9 @@ a.anchor-link {
 <span class="kn">from</span><span class="w"> </span><span class="nn">lightfm.data</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dataset</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">lightfm.evaluation</span><span class="w"> </span><span class="kn">import</span> <span class="n">precision_at_k</span><span class="p">,</span> <span class="n">recall_at_k</span><span class="p">,</span> <span class="n">auc_score</span>
 
+
 <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">'processed_review_data.pkl'</span><span class="p">,</span> <span class="s1">'rb'</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
     <span class="n">df_reviews</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
-<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">'processed_restaurant_data.pkl'</span><span class="p">,</span> <span class="s1">'rb'</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-    <span class="n">df_rest</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -7549,7 +7548,26 @@ a.anchor-link {
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=94e39630-37b0-4239-acf3-1f8503b03fef">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=2a390b92-2915-40b7-9da1-4537a71c84f4">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [2]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">user_ids</span> <span class="o">=</span> <span class="n">df_reviews</span><span class="p">[</span><span class="s1">'user_id'</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span>
+<span class="n">rest_ids</span> <span class="o">=</span> <span class="n">df_reviews</span><span class="p">[</span><span class="s1">'restaurant_id'</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span>
+<span class="n">user_to_index</span> <span class="o">=</span> <span class="p">{</span><span class="n">u</span><span class="p">:</span> <span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">u</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">user_ids</span><span class="p">)}</span>
+<span class="n">rest_to_index</span> <span class="o">=</span> <span class="p">{</span><span class="n">r</span><span class="p">:</span> <span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">rest_ids</span><span class="p">)}</span>
+<span class="n">index_to_user</span> <span class="o">=</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="n">u</span> <span class="k">for</span> <span class="n">u</span><span class="p">,</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">user_to_index</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+<span class="n">index_to_rest</span> <span class="o">=</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="n">r</span> <span class="k">for</span> <span class="n">r</span><span class="p">,</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">rest_to_index</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=918d48fa-3781-47d5-b1b6-b24bd8157e83">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -7557,22 +7575,31 @@ a.anchor-link {
 <div class="jp-InputPrompt jp-InputArea-prompt">In [3]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="n">df_reviews</span> <span class="o">=</span> <span class="n">df_reviews</span><span class="p">[[</span>
-    <span class="s1">'user_id'</span><span class="p">,</span> <span class="s1">'restaurant_id'</span><span class="p">,</span> <span class="s1">'normalized_rating'</span><span class="p">,</span> <span class="s1">'bert_score'</span><span class="p">,</span>
-    <span class="s1">'recency_score'</span><span class="p">,</span> <span class="s1">'weighted_rating_score'</span><span class="p">,</span> <span class="s1">'user_name'</span>
-<span class="p">]]</span>
-<span class="n">df_rest</span> <span class="o">=</span> <span class="n">df_rest</span><span class="p">[[</span>
-    <span class="s1">'id'</span><span class="p">,</span> <span class="s1">'categories_list'</span><span class="p">,</span> <span class="s1">'normalized_rating_restaurants'</span><span class="p">,</span>
-    <span class="s1">'normalized_wilson_score'</span><span class="p">,</span> <span class="s1">'normalized_latitude'</span><span class="p">,</span>
-    <span class="s1">'normalized_longitude'</span><span class="p">,</span> <span class="s1">'popularity_score'</span><span class="p">,</span>
-    <span class="s1">'normalized_log_review_count'</span><span class="p">,</span> <span class="s1">'name'</span>
-<span class="p">]]</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">df_reviews</span><span class="p">[</span><span class="s1">'user_idx'</span><span class="p">]</span> <span class="o">=</span> <span class="n">df_reviews</span><span class="p">[</span><span class="s1">'user_id'</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">user_to_index</span><span class="p">)</span>
+<span class="n">df_reviews</span><span class="p">[</span><span class="s1">'rest_idx'</span><span class="p">]</span> <span class="o">=</span> <span class="n">df_reviews</span><span class="p">[</span><span class="s1">'restaurant_id'</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">rest_to_index</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=ba2717fb-0ee6-4536-a13d-bf0cce4f02d9">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=a54a496a-a5dc-4f94-8875-9e0a533488c7">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [4]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">interactions</span> <span class="o">=</span> <span class="n">coo_matrix</span><span class="p">((</span>
+    <span class="n">df_reviews</span><span class="p">[</span><span class="s1">'weighted_rating_score'</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span>
+    <span class="p">(</span><span class="n">df_reviews</span><span class="p">[</span><span class="s1">'user_idx'</span><span class="p">],</span> <span class="n">df_reviews</span><span class="p">[</span><span class="s1">'rest_idx'</span><span class="p">])</span>
+<span class="p">))</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=0b7192d4-fd89-4d6d-a80d-06caa968d28a">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -7580,100 +7607,26 @@ a.anchor-link {
 <div class="jp-InputPrompt jp-InputArea-prompt">In [5]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="n">user_ids</span> <span class="o">=</span> <span class="n">df_reviews</span><span class="p">[</span><span class="s1">'user_id'</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span>
-<span class="n">rest_ids</span> <span class="o">=</span> <span class="n">df_reviews</span><span class="p">[</span><span class="s1">'restaurant_id'</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span>
-
-<span class="n">user_to_index</span> <span class="o">=</span> <span class="p">{</span><span class="n">u</span><span class="p">:</span> <span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">u</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">user_ids</span><span class="p">)}</span>
-<span class="n">rest_to_index</span> <span class="o">=</span> <span class="p">{</span><span class="n">r</span><span class="p">:</span> <span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">rest_ids</span><span class="p">)}</span>
-<span class="n">index_to_user</span> <span class="o">=</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="n">u</span> <span class="k">for</span> <span class="n">u</span><span class="p">,</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">user_to_index</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
-<span class="n">index_to_rest</span> <span class="o">=</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="n">r</span> <span class="k">for</span> <span class="n">r</span><span class="p">,</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">rest_to_index</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
-
-<span class="n">df_reviews</span><span class="p">[</span><span class="s1">'user_idx'</span><span class="p">]</span> <span class="o">=</span> <span class="n">df_reviews</span><span class="p">[</span><span class="s1">'user_id'</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">user_to_index</span><span class="p">)</span>
-<span class="n">df_reviews</span><span class="p">[</span><span class="s1">'rest_idx'</span><span class="p">]</span> <span class="o">=</span> <span class="n">df_reviews</span><span class="p">[</span><span class="s1">'restaurant_id'</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">rest_to_index</span><span class="p">)</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">model</span> <span class="o">=</span> <span class="n">LightFM</span><span class="p">(</span>
+    <span class="n">loss</span><span class="o">=</span><span class="s1">'warp'</span><span class="p">,</span>
+    <span class="n">no_components</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span>           
+    <span class="n">learning_rate</span><span class="o">=</span><span class="mf">0.03</span><span class="p">,</span>      
+    <span class="n">learning_schedule</span><span class="o">=</span><span class="s1">'adadelta'</span>
+<span class="p">)</span>
 </pre></div>
 </div>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=cad95710-5392-41d3-8e44-39efdf72baaa">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=c3d1f196-be00-4f9c-804c-f44bb6d377c3">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [7]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [6]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="n">df_rest</span> <span class="o">=</span> <span class="n">df_rest</span><span class="p">[</span><span class="n">df_rest</span><span class="p">[</span><span class="s1">'id'</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">rest_ids</span><span class="p">)]</span>
-
-<span class="n">feature_cols</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="s1">'categories_list'</span><span class="p">,</span> <span class="s1">'normalized_rating_restaurants'</span><span class="p">,</span>
-    <span class="s1">'normalized_wilson_score'</span><span class="p">,</span> <span class="s1">'normalized_latitude'</span><span class="p">,</span>
-    <span class="s1">'normalized_longitude'</span><span class="p">,</span> <span class="s1">'popularity_score'</span><span class="p">,</span>
-    <span class="s1">'normalized_log_review_count'</span>
-<span class="p">]</span>
-<span class="n">df_rest</span><span class="p">[</span><span class="s1">'item_feature_str'</span><span class="p">]</span> <span class="o">=</span> <span class="n">df_rest</span><span class="p">[</span><span class="n">feature_cols</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span><span class="o">.</span><span class="n">agg</span><span class="p">(</span><span class="s1">'|'</span><span class="o">.</span><span class="n">join</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=abc58bce-f450-41b7-8830-7f27b4c12038">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [9]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="n">dataset</span> <span class="o">=</span> <span class="n">Dataset</span><span class="p">()</span>
-<span class="n">dataset</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">user_ids</span><span class="p">,</span> <span class="n">rest_ids</span><span class="p">)</span>
-<span class="n">unique_features</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
-<span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">df_rest</span><span class="p">[</span><span class="s1">'item_feature_str'</span><span class="p">]:</span>
-    <span class="n">unique_features</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">'|'</span><span class="p">))</span>
-    
-<span class="n">dataset</span><span class="o">.</span><span class="n">fit_partial</span><span class="p">(</span><span class="n">items</span><span class="o">=</span><span class="n">rest_ids</span><span class="p">,</span> <span class="n">item_features</span><span class="o">=</span><span class="n">unique_features</span><span class="p">)</span>
-
-<span class="p">(</span><span class="n">interactions_matrix</span><span class="p">,</span> <span class="n">_</span><span class="p">)</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">build_interactions</span><span class="p">([</span>
-    <span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">'user_id'</span><span class="p">],</span> <span class="n">row</span><span class="p">[</span><span class="s1">'restaurant_id'</span><span class="p">],</span> <span class="n">row</span><span class="p">[</span><span class="s1">'weighted_rating_score'</span><span class="p">])</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">df_reviews</span><span class="o">.</span><span class="n">iterrows</span><span class="p">()</span>
-<span class="p">])</span>
-<span class="n">item_features_matrix</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">build_item_features</span><span class="p">([</span>
-    <span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">'id'</span><span class="p">],</span> <span class="n">row</span><span class="p">[</span><span class="s1">'item_feature_str'</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">'|'</span><span class="p">))</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">df_rest</span><span class="o">.</span><span class="n">iterrows</span><span class="p">()</span>
-<span class="p">])</span>
-</pre></div>
-</div>
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=ae13a71f-aeb0-4f26-9997-576d9b7af183">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [44]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="n">dataset</span> <span class="o">=</span> <span class="n">Dataset</span><span class="p">()</span>
-<span class="n">dataset</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">user_ids</span><span class="p">,</span> <span class="n">rest_ids</span><span class="p">)</span>
-
-<span class="n">unique_features</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
-<span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">df_rest</span><span class="p">[</span><span class="s1">'item_feature_str'</span><span class="p">]:</span>
-    <span class="n">unique_features</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">'|'</span><span class="p">))</span>
-<span class="n">dataset</span><span class="o">.</span><span class="n">fit_partial</span><span class="p">(</span><span class="n">items</span><span class="o">=</span><span class="n">rest_ids</span><span class="p">,</span> <span class="n">item_features</span><span class="o">=</span><span class="n">unique_features</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=3b24710d-434b-4f43-a4ad-fb6185e527bc">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [11]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="n">model</span> <span class="o">=</span> <span class="n">LightFM</span><span class="p">(</span><span class="n">loss</span><span class="o">=</span><span class="s1">'warp'</span><span class="p">,</span> <span class="n">no_components</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">learning_rate</span><span class="o">=</span><span class="mf">0.03</span><span class="p">,</span> <span class="n">learning_schedule</span><span class="o">=</span><span class="s1">'adadelta'</span><span class="p">)</span>
-<span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">interactions_matrix</span><span class="p">,</span> <span class="n">item_features</span><span class="o">=</span><span class="n">item_features_matrix</span><span class="p">,</span> <span class="n">epochs</span><span class="o">=</span><span class="mi">120</span><span class="p">)</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">interactions</span><span class="p">,</span> <span class="n">epochs</span><span class="o">=</span><span class="mi">120</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -7684,22 +7637,24 @@ a.anchor-link {
 </div>
 <div class="jp-OutputArea jp-Cell-outputArea">
 <div class="jp-OutputArea-child jp-OutputArea-executeResult">
-<div class="jp-OutputPrompt jp-OutputArea-prompt">Out[11]:</div>
+<div class="jp-OutputPrompt jp-OutputArea-prompt">Out[6]:</div>
 <div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain" tabindex="0">
-<pre>&lt;lightfm.lightfm.LightFM at 0x12098ec80&gt;</pre>
+<pre>&lt;lightfm.lightfm.LightFM at 0x1210a1a50&gt;</pre>
 </div>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=87f9c54f-6944-42f4-99ea-bd8fb77f24fe">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=8762d1c0-a1ec-47c5-b883-34b8dcd20dcc">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [21]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [7]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">precision_at_k_unseen</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">interactions_matrix</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">item_features</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">user_history</span> <span class="o">=</span> <span class="n">df_reviews</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">'user_id'</span><span class="p">)[</span><span class="s1">'restaurant_id'</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="nb">set</span><span class="p">)</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">precision_at_k_unseen</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">interactions_matrix</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">item_features</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="n">precisions</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">user_idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">interactions_matrix</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
         <span class="n">user_id</span> <span class="o">=</span> <span class="n">index_to_user</span><span class="p">[</span><span class="n">user_idx</span><span class="p">]</span>
@@ -7723,18 +7678,16 @@ a.anchor-link {
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=6f2717ab-3f3c-4224-ac6d-101bf8e5cdda">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=e015dd99-78d3-4ce2-a657-91870ade15a4">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [23]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [8]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Filtered Precision@10: </span><span class="si">{</span><span class="n">precision_at_k_unseen</span><span class="p">(</span><span class="n">model</span><span class="p">,</span><span class="w"> </span><span class="n">interactions_matrix</span><span class="p">,</span><span class="w"> </span><span class="n">k</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span><span class="w"> </span><span class="n">item_features</span><span class="o">=</span><span class="n">item_features_matrix</span><span class="p">)</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Filtered Precision@15: </span><span class="si">{</span><span class="n">precision_at_k_unseen</span><span class="p">(</span><span class="n">model</span><span class="p">,</span><span class="w"> </span><span class="n">interactions_matrix</span><span class="p">,</span><span class="w"> </span><span class="n">k</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span><span class="w"> </span><span class="n">item_features</span><span class="o">=</span><span class="n">item_features_matrix</span><span class="p">)</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">"Recall@5:"</span><span class="p">,</span> <span class="n">recall_at_k</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">interactions_matrix</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">item_features</span><span class="o">=</span><span class="n">item_features_matrix</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">"AUC Score:"</span><span class="p">,</span> <span class="n">auc_score</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">interactions_matrix</span><span class="p">,</span> <span class="n">item_features</span><span class="o">=</span><span class="n">item_features_matrix</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="s2">"Filtered Precision at 10 (unseen):"</span><span class="p">,</span> <span class="n">precision_at_k_unseen</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">interactions</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">10</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Filtered Precision at 15 (unseen):"</span><span class="p">,</span> <span class="n">precision_at_k_unseen</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">interactions</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">15</span><span class="p">))</span>
 </pre></div>
 </div>
 </div>
@@ -7747,52 +7700,14 @@ a.anchor-link {
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>Filtered Precision@10: 0.0000
-Filtered Precision@15: 0.0000
-Recall@5: 0.9444967808031103
-AUC Score: 0.9997671
+<pre>Filtered Precision at 10 (unseen): 0.0
+Filtered Precision at 15 (unseen): 0.0
 </pre>
 </div>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=dc7b1de8-a2fb-482b-ad93-e4b72dd93427">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [25]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">10</span><span class="p">]:</span>
-    <span class="n">precision</span> <span class="o">=</span> <span class="n">precision_at_k</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">interactions_matrix</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="n">k</span><span class="p">,</span> <span class="n">item_features</span><span class="o">=</span><span class="n">item_features_matrix</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Precision@</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">precision</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">"Recall@5:"</span><span class="p">,</span> <span class="n">recall_at_k</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">interactions_matrix</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">item_features</span><span class="o">=</span><span class="n">item_features_matrix</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">"AUC Score:"</span><span class="p">,</span> <span class="n">auc_score</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">interactions_matrix</span><span class="p">,</span> <span class="n">item_features</span><span class="o">=</span><span class="n">item_features_matrix</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span>
-</pre></div>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child">
-<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>Precision@1: 0.8719
-Precision@3: 0.3900
-Precision@5: 0.2551
-Precision@10: 0.1375
-Recall@5: 0.9444967808031103
-AUC Score: 0.9997671
-</pre>
-</div>
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=3ddc595a-bb58-4e8f-adb5-fa4538b8acbb">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=65983105-0302-4f79-ab51-b80d6cb9d5a0">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -7800,25 +7715,62 @@ AUC Score: 0.9997671
 <div class="jp-InputPrompt jp-InputArea-prompt">In [27]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="n">user_id_to_name</span> <span class="o">=</span> <span class="n">df_reviews</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">(</span><span class="s1">'user_id'</span><span class="p">)[[</span><span class="s1">'user_id'</span><span class="p">,</span> <span class="s1">'user_name'</span><span class="p">]]</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s1">'user_id'</span><span class="p">)[</span><span class="s1">'user_name'</span><span class="p">]</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
-<span class="n">rest_id_to_name</span> <span class="o">=</span> <span class="n">df_rest</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s1">'id'</span><span class="p">)[</span><span class="s1">'name'</span><span class="p">]</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
-<span class="n">user_history</span> <span class="o">=</span> <span class="n">df_reviews</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">'user_id'</span><span class="p">)[</span><span class="s1">'restaurant_id'</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="nb">set</span><span class="p">)</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
-
-<span class="k">def</span><span class="w"> </span><span class="nf">recommend_top_k</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">user_id</span><span class="p">,</span> <span class="n">user_to_index</span><span class="p">,</span> <span class="n">index_to_rest</span><span class="p">,</span> <span class="n">item_features_matrix</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">5</span><span class="p">):</span>
-    <span class="k">if</span> <span class="n">user_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">user_to_index</span><span class="p">:</span>
-        <span class="k">return</span> <span class="p">[]</span>
-    <span class="n">user_idx</span> <span class="o">=</span> <span class="n">user_to_index</span><span class="p">[</span><span class="n">user_id</span><span class="p">]</span>
-    <span class="n">scores</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">user_idx</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">rest_ids</span><span class="p">)),</span> <span class="n">item_features</span><span class="o">=</span><span class="n">item_features_matrix</span><span class="p">)</span>
-    <span class="n">seen</span> <span class="o">=</span> <span class="n">user_history</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">user_id</span><span class="p">,</span> <span class="nb">set</span><span class="p">())</span>
-    <span class="n">sorted_items</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="o">-</span><span class="n">scores</span><span class="p">)</span>
-    <span class="n">filtered</span> <span class="o">=</span> <span class="p">[</span><span class="n">index_to_rest</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">sorted_items</span> <span class="k">if</span> <span class="n">index_to_rest</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">seen</span><span class="p">]</span>
-    <span class="k">return</span> <span class="n">filtered</span><span class="p">[:</span><span class="n">k</span><span class="p">]</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="s2">"Precision at 5 (seen):"</span><span class="p">,</span> <span class="n">precision_at_k</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">interactions</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Recall at 5 (seen):"</span><span class="p">,</span> <span class="n">recall_at_k</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">interactions</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"AUC Score (seen):"</span><span class="p">,</span> <span class="n">auc_score</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">interactions</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span>
 </pre></div>
 </div>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=e33807da-6154-4a18-9792-d6d5c15d7921">
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
+<pre>Precision at 5 (seen): 0.2655009
+Recall at 5 (seen): 0.9899183799327046
+AUC Score (seen): 0.9999999
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=6fc36fb5-c669-4bcb-91b2-62d925e5244c">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [15]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">lightfm.evaluation</span><span class="w"> </span><span class="kn">import</span> <span class="n">precision_at_k</span><span class="p">,</span> <span class="n">recall_at_k</span><span class="p">,</span> <span class="n">auc_score</span>
+<span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">10</span><span class="p">]:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Precision at </span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">precision_at_k</span><span class="p">(</span><span class="n">model</span><span class="p">,</span><span class="w"> </span><span class="n">interactions</span><span class="p">,</span><span class="w"> </span><span class="n">k</span><span class="o">=</span><span class="n">k</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
+<pre>Precision at 1: 0.9999
+Precision at 3: 0.4153
+Precision at 5: 0.2655
+Precision at 10: 0.1404
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=c86c687f-e5c6-4fde-9f8c-08b6c2bbc480">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -7826,34 +7778,61 @@ AUC Score: 0.9997671
 <div class="jp-InputPrompt jp-InputArea-prompt">In [29]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="n">results</span> <span class="o">=</span> <span class="p">[]</span>
-<span class="k">for</span> <span class="n">user_id</span> <span class="ow">in</span> <span class="n">user_ids</span><span class="p">:</span>
-    <span class="n">top_k</span> <span class="o">=</span> <span class="n">recommend_top_k</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">user_id</span><span class="p">,</span> <span class="n">user_to_index</span><span class="p">,</span> <span class="n">index_to_rest</span><span class="p">,</span> <span class="n">item_features_matrix</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">rank</span><span class="p">,</span> <span class="n">rest_id</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">top_k</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
-        <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
-            <span class="s2">"user_id"</span><span class="p">:</span> <span class="n">user_id</span><span class="p">,</span>
-            <span class="s2">"user_name"</span><span class="p">:</span> <span class="n">user_id_to_name</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">user_id</span><span class="p">,</span> <span class="s2">"Unknown"</span><span class="p">),</span>
-            <span class="s2">"rank"</span><span class="p">:</span> <span class="n">rank</span><span class="p">,</span>
-            <span class="s2">"recommended_restaurant_id"</span><span class="p">:</span> <span class="n">rest_id</span><span class="p">,</span>
-            <span class="s2">"restaurant_name"</span><span class="p">:</span> <span class="n">rest_id_to_name</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">rest_id</span><span class="p">,</span> <span class="s2">"Unknown"</span><span class="p">)</span>
-        <span class="p">})</span>
-
-<span class="n">recommendation_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">results</span><span class="p">)</span>
-<span class="n">final_output</span> <span class="o">=</span> <span class="n">recommendation_df</span><span class="p">[[</span><span class="s1">'user_name'</span><span class="p">,</span> <span class="s1">'rank'</span><span class="p">,</span> <span class="s1">'restaurant_name'</span><span class="p">]]</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">recommend_top_k</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">user_id</span><span class="p">,</span> <span class="n">user_to_index</span><span class="p">,</span> <span class="n">index_to_rest</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">5</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">user_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">user_to_index</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[]</span>
+    <span class="n">user_idx</span> <span class="o">=</span> <span class="n">user_to_index</span><span class="p">[</span><span class="n">user_id</span><span class="p">]</span>
+    <span class="n">scores</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">user_idx</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">rest_ids</span><span class="p">)))</span>
+    <span class="n">top_items</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="o">-</span><span class="n">scores</span><span class="p">)[:</span><span class="n">k</span><span class="p">]</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">index_to_rest</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">top_items</span><span class="p">]</span>
 </pre></div>
 </div>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=c693af1b-4572-4594-830a-61539f3a2820">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=f3ca9b62-8ff2-4f73-b3d5-980b6ab752dd">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [30]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [31]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="n">final_output</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">results</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">user_id</span> <span class="ow">in</span> <span class="n">user_ids</span><span class="p">:</span>
+    <span class="n">top_k</span> <span class="o">=</span> <span class="n">recommend_top_k</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">user_id</span><span class="p">,</span> <span class="n">user_to_index</span><span class="p">,</span> <span class="n">index_to_rest</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">rank</span><span class="p">,</span> <span class="n">rest_id</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">top_k</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+        <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+            <span class="s2">"user_id"</span><span class="p">:</span> <span class="n">user_id</span><span class="p">,</span>
+            <span class="s2">"rank"</span><span class="p">:</span> <span class="n">rank</span><span class="p">,</span>
+            <span class="s2">"recommended_restaurant_id"</span><span class="p">:</span> <span class="n">rest_id</span>
+        <span class="p">})</span>
+
+<span class="n">recommendation_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">results</span><span class="p">)</span>
+<span class="n">user_id_to_name</span> <span class="o">=</span> <span class="n">df_reviews</span><span class="p">[[</span><span class="s1">'user_id'</span><span class="p">,</span> <span class="s1">'user_name'</span><span class="p">]]</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">()</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s1">'user_id'</span><span class="p">)[</span><span class="s1">'user_name'</span><span class="p">]</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=2a0b75e5-6f57-42bf-96c3-9569dca10819">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [33]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">'processed_restaurant_data.pkl'</span><span class="p">,</span> <span class="s1">'rb'</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">df_rest</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+<span class="n">rest_id_to_name</span> <span class="o">=</span> <span class="n">df_rest</span><span class="p">[[</span><span class="s1">'id'</span><span class="p">,</span> <span class="s1">'name'</span><span class="p">]]</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">()</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s1">'id'</span><span class="p">)[</span><span class="s1">'name'</span><span class="p">]</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
+
+<span class="n">recommendation_df</span><span class="p">[</span><span class="s1">'user_name'</span><span class="p">]</span> <span class="o">=</span> <span class="n">recommendation_df</span><span class="p">[</span><span class="s1">'user_id'</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">user_id_to_name</span><span class="p">)</span>
+<span class="n">recommendation_df</span><span class="p">[</span><span class="s1">'restaurant_name'</span><span class="p">]</span> <span class="o">=</span> <span class="n">recommendation_df</span><span class="p">[</span><span class="s1">'recommended_restaurant_id'</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">rest_id_to_name</span><span class="p">)</span>
+
+<span class="n">final_output</span> <span class="o">=</span> <span class="n">recommendation_df</span><span class="p">[[</span><span class="s1">'user_name'</span><span class="p">,</span> <span class="s1">'rank'</span><span class="p">,</span> <span class="s1">'restaurant_name'</span><span class="p">]]</span>
+<span class="n">final_output</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">15</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -7864,7 +7843,7 @@ AUC Score: 0.9997671
 </div>
 <div class="jp-OutputArea jp-Cell-outputArea">
 <div class="jp-OutputArea-child jp-OutputArea-executeResult">
-<div class="jp-OutputPrompt jp-OutputArea-prompt">Out[30]:</div>
+<div class="jp-OutputPrompt jp-OutputArea-prompt">Out[33]:</div>
 <div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/html" tabindex="0">
 <div>
 <style scoped="">
@@ -7894,77 +7873,100 @@ AUC Score: 0.9997671
 <th>0</th>
 <td>Tatyana M.</td>
 <td>1</td>
-<td>Jimmy John's</td>
+<td>Jamaica Jerk Villa</td>
 </tr>
 <tr>
 <th>1</th>
 <td>Tatyana M.</td>
 <td>2</td>
-<td>Shark's Fish</td>
+<td>Taqueria Varitas</td>
 </tr>
 <tr>
 <th>2</th>
 <td>Tatyana M.</td>
 <td>3</td>
-<td>The Walnut Room</td>
+<td>Mahari</td>
 </tr>
 <tr>
 <th>3</th>
 <td>Tatyana M.</td>
 <td>4</td>
-<td>Mahari</td>
+<td>Southport Grocery &amp; Cafe</td>
 </tr>
 <tr>
 <th>4</th>
 <td>Tatyana M.</td>
 <td>5</td>
-<td>Jordyn's Soul Cafe</td>
+<td>Juanitas Mexican food #2</td>
 </tr>
 <tr>
-<th>...</th>
-<td>...</td>
-<td>...</td>
-<td>...</td>
-</tr>
-<tr>
-<th>47460</th>
-<td>Donny F.</td>
+<th>5</th>
+<td>Magic S.</td>
 <td>1</td>
-<td>Primos Chicago Pizza</td>
+<td>Jamaica Jerk Villa</td>
 </tr>
 <tr>
-<th>47461</th>
-<td>Donny F.</td>
+<th>6</th>
+<td>Magic S.</td>
 <td>2</td>
-<td>Giordano's</td>
+<td>Taqueria Varitas</td>
 </tr>
 <tr>
-<th>47462</th>
-<td>Donny F.</td>
+<th>7</th>
+<td>Magic S.</td>
 <td>3</td>
-<td>Nesh Mediterranean Grill</td>
+<td>Asian Kitchen Express</td>
 </tr>
 <tr>
-<th>47463</th>
-<td>Donny F.</td>
+<th>8</th>
+<td>Magic S.</td>
 <td>4</td>
-<td>Thai Spoon &amp; Sushi</td>
+<td>Mahari</td>
 </tr>
 <tr>
-<th>47464</th>
-<td>Donny F.</td>
+<th>9</th>
+<td>Magic S.</td>
 <td>5</td>
-<td>India House Restaurant</td>
+<td>Huaraches Mexican Restaurant</td>
+</tr>
+<tr>
+<th>10</th>
+<td>Kara K.</td>
+<td>1</td>
+<td>Taqueria Varitas</td>
+</tr>
+<tr>
+<th>11</th>
+<td>Kara K.</td>
+<td>2</td>
+<td>The Caribbean Jerk Joint</td>
+</tr>
+<tr>
+<th>12</th>
+<td>Kara K.</td>
+<td>3</td>
+<td>Nafsi</td>
+</tr>
+<tr>
+<th>13</th>
+<td>Kara K.</td>
+<td>4</td>
+<td>Jamaica Jerk Villa</td>
+</tr>
+<tr>
+<th>14</th>
+<td>Kara K.</td>
+<td>5</td>
+<td>Huaraches Mexican Restaurant</td>
 </tr>
 </tbody>
 </table>
-<p>47465 rows × 3 columns</p>
 </div>
 </div>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=d03d96bf-1444-47ab-8ab2-0029253e8973">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=1fe49ee4-5081-4325-b9de-136d1669e27f">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
